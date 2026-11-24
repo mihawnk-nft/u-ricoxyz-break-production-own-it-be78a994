@@ -40,6 +40,21 @@ LINE = (
 MAX_CHARS = 200
 
 
+def output_targets():
+    """Where entry.txt goes, in order of preference.
+
+    MAKEFUN_OUTPUT_DIR overrides the sandbox mount for local runs, so a
+    local test never writes into the shared /output used by other entries'
+    tests on this machine. The grader's sandbox sets no such variable, so
+    the graded run still writes to /output/entry.txt first.
+    """
+    override = os.environ.get("MAKEFUN_OUTPUT_DIR")
+    if override:
+        return [os.path.join(override, "entry.txt"),
+                "/output/entry.txt", "output/entry.txt"]
+    return ["/output/entry.txt", "output/entry.txt"]
+
+
 def main() -> None:
     line = LINE.strip()
     if not line:
@@ -53,7 +68,7 @@ def main() -> None:
         )
     # The grader reads /output/entry.txt; fall back to a relative output
     # directory only when the sandbox mount is unavailable (local runs).
-    for target in ("/output/entry.txt", "output/entry.txt"):
+    for target in output_targets():
         try:
             parent = os.path.dirname(target)
             if parent:
